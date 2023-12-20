@@ -204,6 +204,24 @@ app.get('/get-attendance', async (req, res) => {
   }
 });
 
+app.delete('/delete-attendance', async (req, res) => {
+  try {
+    const userId = req.query.userId;
+    const attendanceId = req.query.attendanceId;
+
+    const result = await attendanceCollection.deleteOne({ userId, _id: new ObjectId(attendanceId) });
+
+    if (result.deletedCount === 0) {
+      // If no attendance record was deleted, return an error
+      res.status(404).json({ error: 'Attendance record not found for the given user' });
+    } else {
+      res.status(200).json({ message: 'Attendance record deleted successfully' });
+    }
+  } catch (error) {
+    console.error('Error deleting attendance record:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
 
 
 app.listen(PORT, () => {
