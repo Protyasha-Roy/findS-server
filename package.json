@@ -1,14 +1,13 @@
 {
   "name": "finds-server",
   "version": "1.0.0",
-  "description": "",
+  "description": "Your project description here",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js"
   },
   "keywords": [],
-  "author": "",
+  "author": "Your Name",
   "license": "ISC",
   "dependencies": {
     "bcrypt": "^5.1.1",
