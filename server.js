@@ -142,16 +142,21 @@ app.post('/delete-student', async (req, res) => {
 
 
 app.post('/addAttendance', async (req, res) => {
-    try {
-        const { userId, rolls } = req.body;
+  try {
+      const { userId, rolls } = req.body;
+      
+      const totalStudentRolls = (await studentsCollection.find({userId}).toArray()).map(student => student.roll);
+     
+      const updatedRolls = rolls.filter(roll => totalStudentRolls.includes(roll) );
+      const unmatchedRolls = rolls.filter(roll => !totalStudentRolls.includes(roll) );
 
-        // Assuming you have a collection named 'students'
-        const totalStudents = await studentsCollection.find({ userId }).count();
+    
+      if(updatedRolls.length > 0) {
+        const absentRolls = updatedRolls
+        .filter(roll => !totalStudentRolls.includes(roll))
+        .concat(totalStudentRolls.filter(roll => !updatedRolls.includes(roll)));
+        
 
-        const presentRolls = rolls.map(Number);
-        const allRolls = Array.from({ length: totalStudents }, (_, i) => i + 1);
-
-        const absentRolls = allRolls.filter(roll => !presentRolls.includes(roll));
 
         const currentDate = new Date();
         const postingDate = `${currentDate.getDate()}-${currentDate.getMonth() + 1}-${currentDate.getFullYear()}`;
@@ -160,15 +165,46 @@ app.post('/addAttendance', async (req, res) => {
         await attendanceCollection.insertOne({
             userId,
             date: postingDate,
-            presentRolls: presentRolls,
+            presentRolls: updatedRolls,
             absentRolls: absentRolls,
         });
 
-        res.status(200).json({ message: 'Attendance added successfully' });
-    } catch (error) {
-        console.error('Error adding attendance:', error);
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
+        console.log(unmatchedRolls.length)
+
+        if(unmatchedRolls.length > 0) {
+          console.log(unmatchedRolls);
+            res.status(200).json({ message: `Attendance added successfully, excluded rolls: ${unmatchedRolls}` });
+        }
+        else{
+          console.log("inside")
+          res.status(200).json({ message: 'Attendance added successfully' });
+        }
+
+      }
+      else {
+        res.status(200).json({message: "Rolls don't exist"})
+      }
+
+  } catch (error) {
+      console.error('Error adding attendance:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+
+
+app.get('/get-attendance', async (req, res) => {
+  try {
+    const userId = req.query.userId;
+
+    // Assuming you have a collection named 'attendance'
+    const attendanceData = await attendanceCollection.find({ userId }).toArray();
+
+    res.status(200).json(attendanceData);
+  } catch (error) {
+    console.error('Error fetching attendance data:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
 });
 
 
