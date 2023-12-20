@@ -25,7 +25,7 @@ connection.once('open', () => {
 
 const usersCollection = connection.collection('users');
 const studentsCollection = connection.collection('students');
-
+const attendanceCollection = connection.collection('attendance');
 
 app.get('/', (req, res) => {
   res.send('Hello, World!');
@@ -139,6 +139,38 @@ app.post('/delete-student', async (req, res) => {
       res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+
+
+app.post('/addAttendance', async (req, res) => {
+    try {
+        const { userId, rolls } = req.body;
+
+        // Assuming you have a collection named 'students'
+        const totalStudents = await studentsCollection.find({ userId }).count();
+
+        const presentRolls = rolls.map(Number);
+        const allRolls = Array.from({ length: totalStudents }, (_, i) => i + 1);
+
+        const absentRolls = allRolls.filter(roll => !presentRolls.includes(roll));
+
+        const currentDate = new Date();
+        const postingDate = `${currentDate.getDate()}-${currentDate.getMonth() + 1}-${currentDate.getFullYear()}`;
+
+        // Save attendance record to the collection
+        await attendanceCollection.insertOne({
+            userId,
+            date: postingDate,
+            presentRolls: presentRolls,
+            absentRolls: absentRolls,
+        });
+
+        res.status(200).json({ message: 'Attendance added successfully' });
+    } catch (error) {
+        console.error('Error adding attendance:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
 
 
 app.listen(PORT, () => {
