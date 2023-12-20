@@ -125,7 +125,6 @@ app.get('/get-students', async (req, res) => {
 app.post('/delete-student', async (req, res) => {
   try {
       const { userId, roll } = req.body;
-      console.log(userId, roll)
       // Assuming you have a collection named 'students'
       const result = await studentsCollection.deleteOne({ userId, roll });
 
