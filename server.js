@@ -169,14 +169,11 @@ app.post('/addAttendance', async (req, res) => {
             absentRolls: absentRolls,
         });
 
-        console.log(unmatchedRolls.length)
 
         if(unmatchedRolls.length > 0) {
-          console.log(unmatchedRolls);
             res.status(200).json({ message: `Attendance added successfully, excluded rolls: ${unmatchedRolls}` });
         }
         else{
-          console.log("inside")
           res.status(200).json({ message: 'Attendance added successfully' });
         }
 
